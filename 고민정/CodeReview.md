@@ -39,15 +39,26 @@ eb_tag2 = '</EB>'
 # 태깅할 파일 제목 확장자 포함해서 입력
 filename_for_tagging = '전북 관광지리뷰.xlsx'
 # 태깅 끝나고 저장할 파일명을 확장자 포함해서 입력
-filename_for_saving = 'tagged_test_pd.xlsx'
+#filename_for_saving = 'tagged_test_pd.xlsx'
+
+filename_for_saving = filename_for_tagging[:-5] + ' 태깅.txt'
+saving = open(filename_for_saving, 'w')
 
 filename_for_errlog = filename_for_tagging[:-5] + ' 에러로그.txt'
 errlog = open(filename_for_errlog, 'w')
+
 wb = xl.load_workbook('./' + filename_for_tagging)	#태깅할 파일 wb
 
 for i in range(0, len(wb.sheetnames)):	#반복문(시트개수)
-    xlsx_sheet = wb[wb.sheetnames[i]]	#i번째 시트
-    saving.write("[" + wb.sheetnames[i] + "]\n")	#시트명 작성
+    
+    #시트명 작성
+    if i == 0:
+        saving_str = "[" + wb.sheetnames[i] + "]"
+    else:
+        saving_str = saving_str + "\n[" + wb.sheetnames[i] + "]"
+    
+    #xlsx_sheet = wb[wb.sheetnames[i]]	#i번째 시트
+    #saving.write("[" + wb.sheetnames[i] + "]\n")	#시트명 작성
     
     #태깅할 파일에서 i번째 시트를 읽어온 내용 df
     df = pd.read_excel('./' + filename_for_tagging, sheet_name=wb.sheetnames[i])
@@ -131,7 +142,9 @@ for i in range(0, len(wb.sheetnames)):	#반복문(시트개수)
                     sent = df['문장'][j]
                     
                     if check != df.shape[0] - 1:	#check가 행의 수보다 커지지 않도록 방지
-                        check += 1	
+                        check += 1
+                    else:
+                        break #맨 마지막 수식관계가 여러개인 경우 무한루프가 생겨서 break 사용
                                 
             except AttributeError:
                 errlog.write(str(j) + "행 부근에서 에러 발생\n")
@@ -170,9 +183,11 @@ for i in range(0, len(wb.sheetnames)):	#반복문(시트개수)
 
         if type(sent) is str:
             #xlsx_sheet['L' + str(j + 2)] = sent
-            saving.write(str(j + 2) + "행 태깅: " + sent + "\n")
+            #saving.write(str(j + 2) + "행 태깅: " + sent + "\n")
+            saving_str = saving_str + "\n" +  str(j + 2) + "행 태깅: " + sent
             
 #wb.save('./' + filename_for_saving)
+saving.write(saving_str)
 print("태깅 끝 에러로그를 확인해주세요")
 ```
 
