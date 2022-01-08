@@ -32,8 +32,14 @@ errlog = open(filename_for_errlog, 'w')
 wb = xl.load_workbook('./' + filename_for_tagging)
 
 for i in range(0, len(wb.sheetnames)):
-    xlsx_sheet = wb[wb.sheetnames[i]]
-    saving.write("[" + wb.sheetnames[i] + "]\n")
+    
+    if i == 0:
+        saving_str = "[" + wb.sheetnames[i] + "]"
+    else:
+        saving_str = saving_str + "\n[" + wb.sheetnames[i] + "]"
+    
+    #print("[" + wb.sheetnames[i] + "]")
+    #saving.write("[" + wb.sheetnames[i] + "]\n")
 
     df = pd.read_excel('./' + filename_for_tagging, sheet_name=wb.sheetnames[i])
 
@@ -54,7 +60,9 @@ for i in range(0, len(wb.sheetnames)):
 
     df = df.fillna(pd.NA).copy()
 
-    for j in range(1, df.shape[0] - 1):
+    #print(df.shape[0] - 1)
+    
+    for j in range(1, df.shape[0]-1):
 
         sent = df['문장'][j]
         n_str = df['수식관계/평점'][j]
@@ -80,6 +88,8 @@ for i in range(0, len(wb.sheetnames)):
                     sent = df['문장'][j]
                 check = j + 1
 
+                #print(df['문장'][check])
+
                 while df['문장'][check] is pd.NA:
 
                     n_str = df['수식관계/평점'][check]
@@ -100,16 +110,22 @@ for i in range(0, len(wb.sheetnames)):
 
                     sent = df['문장'][j]
                     
-                    if check != df.shape[0] - 1:
+                    if check != df.shape[0]-1:
                         check += 1
+                    else:
+                        break
                 
             except AttributeError:
+                #print(j)
                 errlog.write(str(j) + "행 부근에서 에러 발생\n")
                 
         elif n_str is pd.NA:
             continue
 
         if type(sent) is str:
-            #xlsx_sheet['L' + str(j + 2)] = sent
-            saving.write(str(j + 2) + "행 태깅: " + sent + "\n")
-    
+            #print(str(j + 2) + "행 태깅: " + sent)
+            saving_str = saving_str + "\n" +  str(j + 2) + "행 태깅: " + sent
+            #saving.write(str(j + 2) + "행 태깅: " + sent + "\n")
+
+
+saving.write(saving_str)
