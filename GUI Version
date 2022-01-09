@@ -1,0 +1,211 @@
+import openpyxl as xl
+import re
+import os
+import pandas as pd
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
+
+f_tag = '<F>'
+f_tag2 = '</F>'
+
+pa_tag = '<PA>'
+pa_tag2 = '</PA>'
+pb_tag = '<PB>'
+pb_tag2 = '</PB>'
+
+na_tag = '<NA>'
+na_tag2 = '</NA>'
+nb_tag = '<NA>'
+nb_tag2 = '</NA>'
+
+ea_tag = '<EA>'
+ea_tag2 = '</EA>'
+eb_tag = '<EB>'
+eb_tag2 = '</EB>'
+
+
+
+def sel_file():
+    global file_dir
+
+    file_dir = filedialog.askopenfilenames(initialdir="/", title="태깅할 파일을 선택해주세요.",
+                                       filetypes=(("*.xlsx", "*xlsx"), ("*.xls", "*xls")))
+    if file_dir == '':
+        messagebox.showwarning("경고", "파일이 선택되지 않았습니다.")
+    global filename
+    filename = file_dir[0]
+    filename = filename.split('/')
+    filename = filename[-1]
+    file_dir = file_dir[0]
+    if file_dir is not None:
+        tag_start['state'] = "normal"
+        open_dir['state'] = "normal"
+        error_btn['state'] = "normal"
+        tagview_btn['state'] = "normal"
+        excel_open_btn['state'] = "normal"
+
+
+def open_error():
+    save_dir = file_dir[:len(file_dir) - len(filename)]
+    os.startfile(save_dir + filename[:-5] + ' 에러로그.txt')
+
+def open_tag():
+    save_dir = file_dir[:len(file_dir) - len(filename)]
+    os.startfile(save_dir + filename[:-5] + ' 태깅.txt')
+
+def open_xlsx():
+    save_dir = file_dir[:len(file_dir) - len(filename)]
+    os.startfile(save_dir + filename)
+
+def open_dir():
+    path = file_dir[:len(file_dir) - (len(filename)+1)]
+    path.replace("\\","/")
+    path = os.path.realpath(path)
+    os.startfile(path)
+
+def tag_start():
+    # 본 코드 실행 시작 시점--------------------------------------------------------------------------
+    save_dir = file_dir[:len(file_dir) - len(filename)]
+
+    filename_for_saving = filename[:-5] + ' 태깅.txt'
+    saving = open(save_dir+filename_for_saving, 'w',encoding='UTF-8')
+
+    filename_for_errlog = filename[:-5] + ' 에러로그.txt'
+    errlog = open(save_dir+filename_for_errlog, 'w',encoding='UTF-8')
+
+    wb = xl.load_workbook(file_dir)
+
+
+
+    for i in range(0, len(wb.sheetnames)):
+
+
+        if i == 0:
+            saving_str = "[" + wb.sheetnames[i] + "]"
+        else:
+            saving_str = saving_str + "\n[" + wb.sheetnames[i] + "]"
+
+        xlsx_sheet = wb[wb.sheetnames[i]]
+        errlog.write('\n----------' + wb.sheetnames[i] + ' 에러로그' + '----------\n\n')
+
+        print("진행률 " + str(round(((i / len(wb.sheetnames)) * 100), 1)) + "%")
+        df = pd.read_excel(file_dir, sheet_name=wb.sheetnames[i])
+
+        df['문장'] = df['문장'].str.strip().copy()
+        df['문장'] = df['문장'].str.strip('\n').copy()
+
+        df['수식관계/평점'] = df['수식관계/평점'].str.strip().copy()
+        df['수식관계/평점'] = df['수식관계/평점'].str.strip('\n').copy()
+
+        df['Unnamed: 6'] = df['Unnamed: 6'].str.strip().copy()
+        df['Unnamed: 6'] = df['Unnamed: 6'].str.strip('\n').copy()
+
+        df['Unnamed: 7'] = df['Unnamed: 7'].str.strip().copy()
+        df['Unnamed: 7'] = df['Unnamed: 7'].str.strip('\n').copy()
+
+        df['Unnamed: 8'] = df['Unnamed: 8'].str.strip().copy()
+        df['Unnamed: 8'] = df['Unnamed: 8'].str.strip('\n').copy()
+
+        df = df.fillna(pd.NA).copy()
+
+        # print(df.shape[0] - 1)
+
+        for j in range(1, df.shape[0] - 1):
+
+            sent = df['문장'][j]
+            n_str = df['수식관계/평점'][j]
+            p_str = df['Unnamed: 6'][j]
+            neg_str = df['Unnamed: 7'][j]
+            emph_str = df['Unnamed: 8'][j]
+
+            if n_str is not pd.NA:
+
+                try:
+                    find = re.search(r'' + n_str.replace(' ', '*.'), str(sent)).span()
+                    df['문장'][j] = df['문장'].str.slice_replace(find[0], find[1], f_tag + n_str + f_tag2)[j]
+                    n_start = find[0]
+                    sent = df['문장'][j]
+
+                    find = re.search(r'' + p_str.replace(' ', '*.'), str(sent)).span()
+                    p_start = find[0]
+                    if find[0] > n_start:
+                        df['문장'][j] = df['문장'].str.slice_replace(find[0], find[1], pb_tag + p_str + pb_tag2)[j]
+                        sent = df['문장'][j]
+                    elif find[0] < n_start:
+                        df['문장'][j] = df['문장'].str.slice_replace(find[0], find[1], pa_tag + p_str + pa_tag2)[j]
+                        sent = df['문장'][j]
+                    check = j + 1
+
+                    # print(df['문장'][check])
+
+                    while df['문장'][check] is pd.NA:
+
+                        n_str = df['수식관계/평점'][check]
+                        next_find = re.search(r'' + n_str.replace(' ', '*.'), str(sent)).span()
+                        df['문장'][j] = df['문장'].str.slice_replace(next_find[0], next_find[1], f_tag + n_str + f_tag2)[j]
+                        n_start = next_find[0]
+                        sent = df['문장'][j]
+
+                        p_str = df['Unnamed: 6'][check]
+                        next_find = re.search(r'' + p_str.replace(' ', '*.'), str(sent)).span()
+
+                        if next_find[0] > n_start:
+                            df['문장'][j] = df['문장'].str.slice_replace(next_find[0], next_find[1], pb_tag + p_str + pb_tag2)[
+                                j]
+                            sent = df['문장'][j]
+                        elif next_find[0] < n_start:
+                            df['문장'][j] = df['문장'].str.slice_replace(next_find[0], next_find[1], pa_tag + p_str + pa_tag2)[
+                                j]
+                            sent = df['문장'][j]
+
+                        sent = df['문장'][j]
+
+                        if check != df.shape[0] - 1:
+                            check += 1
+                        else:
+                            break
+
+                except AttributeError:
+                    # print(j)
+                    errlog.write(xlsx_sheet.title+" | "+str(j + 2)+"행 에러발생\n")
+
+            elif n_str is pd.NA:
+                continue
+
+            if type(sent) is str:
+                # print(str(j + 2) + "행 태깅: " + sent)
+                saving_str = saving_str + "\n" + str(j + 2) + "행 태깅: " + sent
+                # saving.write(str(j + 2) + "행 태깅: " + sent + "\n")
+    print("진행률 100.0% \n디렉토리를 열어 파일을 확인해주세요!")
+    saving.write(saving_str)
+    #본 코드 종점 ----------------------------------------------------------------------
+win = tk.Tk()
+monitor_height = win.winfo_screenheight()
+monitor_width = win.winfo_screenwidth()
+win.title("Picher Auto tagging")
+width = 600
+height = 200
+geometry = str(width)+"x"+str(height)+"+"+str(int(monitor_width/2)-int    (width/2))+"+"+str(int(monitor_height/2)-int(height/2))
+win.geometry(geometry)
+
+win.columnconfigure(0, weight = 1)
+win.columnconfigure(1, weight = 1)
+win.columnconfigure(2, weight = 1)
+win.rowconfigure(0, weight = 1)
+win.rowconfigure(1, weight = 1)
+
+sel_file_btn = tk.Button(win, bd = 1, text="Sel\nFile", background = "#313335", fg = "#a2b0b8", font='Arial 16 bold', command=sel_file)
+sel_file_btn.grid(row = 0, column = 0, sticky = "NWSE")
+tag_start = tk.Button(win, bd = 1, text="Start\nTagging", background = "#313335", fg = "#a2b0b8", font='Arial 16 bold', command = tag_start, state = "disabled")
+tag_start.grid(row = 0, column = 1, sticky = "NWSE")
+open_dir = tk.Button(win, bd = 1, text="Open\nDirectory", background = "#313335", fg = "#a2b0b8", font='Arial 16 bold', command = open_dir, state = "disabled")
+open_dir.grid(row = 0, column = 2, sticky = "NWSE")
+error_btn = tk.Button(win, bd = 1, text="View\nErrorLog", background = "#313335", fg = "#a2b0b8", font='Arial 16 bold', command = open_error, state = "disabled")
+error_btn.grid(row = 1, column = 0, sticky = "NWSE")
+tagview_btn = tk.Button(win, bd = 1, text="View\nTagResult", background = "#313335", fg = "#a2b0b8", font='Arial 16 bold', command = open_tag, state = "disabled")
+tagview_btn.grid(row = 1, column = 1, sticky = "NWSE")
+excel_open_btn = tk.Button(win, bd = 1, text="View\nXlsx", background = "#313335", fg = "#a2b0b8", font='Arial 16 bold', command = open_xlsx, state = "disabled")
+excel_open_btn.grid(row = 1, column = 2, sticky = "NWSE")
+win.mainloop()
+
