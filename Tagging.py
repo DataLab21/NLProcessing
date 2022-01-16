@@ -12,7 +12,7 @@ tag_list = [['<FA>', '</FA>'],['PA','PB'],['NA','NB'],['EA','EB']]
 filename_for_tagging = '서울관광지.xlsx'
 
 filename_for_saving = filename_for_tagging[:-5] + ' 태깅.txt'
-saving = open(filename_for_saving, 'w')
+saving = open(filename_for_saving, 'w', encoding='UTF-8')
 
 filename_for_errlog = filename_for_tagging[:-5] + ' 에러로그.txt'
 errlog = open(filename_for_errlog, 'w')
@@ -21,7 +21,7 @@ wb = xl.load_workbook('./' + filename_for_tagging)
 
 ###Code
 for i in range(0, len(wb.sheetnames)):
-    
+
     if i == 0:
         saving_str = "[" + wb.sheetnames[i] + "]"
     else:
