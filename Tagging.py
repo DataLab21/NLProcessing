@@ -52,21 +52,20 @@ for i in range(0, len(wb.sheetnames)):
         
         for k in range(len(df_list)):
             str_list[k] = df[df_list[k]][j]
-        
+            
         if str_list[2] is not pd.NA:
             Function.tagging(1, df_list, str_list, tag_list, j, df, errlog)
             
             if str_list[3] is not pd.NA:
                 Function.tagging(2, df_list, str_list, tag_list, j, df, errlog)
-
+                
             if str_list[4] is not pd.NA:
                 Function.tagging(3, df_list, str_list, tag_list, j, df, errlog)
-            
+                
         elif str_list[1] is pd.NA:
             continue
-        
-        if type(str_list[0]) is str:
-            print(str_list[0])
+
+        if str_list[0] is not pd.NA:
             saving_str = saving_str + "\n" + str_list[0]
                 
 saving.write(saving_str)
