@@ -3,10 +3,23 @@ import re
 import pandas as pd
 import Function
 
+"""
+태그 목록
+------------------------------------
+<F> Feature 태그
+<PB> 전치 서술어(형용사) 태그
+<PA> 후치 서술어 태그
+<NB> 전치 부정어 태그
+<NA> 후치 부정어 태그
+<EB> 전치 강조 태그
+<EA> 후치 강조 태그
+------------------------------------
+"""
+
 #리스트
 df_list = ['문장', '수식관계/평점', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8']
 str_list = ['','','','','']
-tag_list = [['<FA>', '</FA>'],['PA','PB'],['NA','NB'],['EA','EB']]
+tag_list = [['<F>', '</F>'],['PB','PA'],['NB','NA'],['EB','EA']]
 
 #태깅할 파일 제목 확장자 포함해서 입력
 filename_for_tagging = '서울관광지.xlsx'
@@ -53,7 +66,7 @@ for i in range(0, len(wb.sheetnames)):
             continue
         
         if type(str_list[0]) is str:
-            print(str(j + 2) + "행 태깅: " + str_list[0])
-            saving_str = saving_str + "\n" + str(j + 2) + "행 태깅: " + str_list[0]
+            print(str_list[0])
+            saving_str = saving_str + "\n" + str_list[0]
                 
 saving.write(saving_str)
