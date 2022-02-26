@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 
 # BIO 형태(어절) >> 음절은 str을 list 형태로 쪼개면 사용가능
 
-def BIO(txt, one):
+def BIO(txt):
 
     sentence = []
     test = []
@@ -20,8 +20,6 @@ def BIO(txt, one):
     strA = ['F','EA', 'EB', 'PA', 'PB', 'NA', 'NB']
 
     for line in f:
-        if len(line)==0 or line.startswith(one):
-            continue
 
         for x in range(7):
             p = re.compile('(?<=\<'+strA[x]+'>)(.*?)(?=<\/' + strA[x] + '>)')
@@ -65,10 +63,9 @@ from google.colab import files
 uploaded = files.upload()
 
 a = ['강원도관광지 태깅', '경기도관광지 태깅', '서울관광지 태깅']
-b = ['[경포 해변(완)]','[가평쁘디프랑스_50개]','[광화문]']
 
 tagged_sentences = []
 
-for i in range(len(a)): BIO(a[i], b[i])
+for i in range(len(a)): BIO(a[i])
 
 print("전체 샘플 개수: ", len(tagged_sentences))
